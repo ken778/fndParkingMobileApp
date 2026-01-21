@@ -10,8 +10,10 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import IconFA from 'react-native-vector-icons/FontAwesome';
+import { useTheme } from '../context/ThemeContext';
 
 const AboutScreen = ({ navigation }) => {
+  const { colors } = useTheme();
   const [appVersion, setAppVersion] = useState('1.0.0');
   const [lastUpdated, setLastUpdated] = useState('January 2024');
 
@@ -37,33 +39,33 @@ const AboutScreen = ({ navigation }) => {
   };
 
   const AboutSection = ({ title, children }) => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+    <View style={[styles.section, { backgroundColor: colors.surface }]}>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
       {children}
     </View>
   );
 
   const FeatureItem = ({ icon, title, description }) => (
     <View style={styles.featureItem}>
-      <Icon name={icon} size={24} color="#4285F4" style={styles.featureIcon} />
+      <Icon name={icon} size={24} color={colors.primary} style={styles.featureIcon} />
       <View style={styles.featureText}>
-        <Text style={styles.featureTitle}>{title}</Text>
-        <Text style={styles.featureDescription}>{description}</Text>
+        <Text style={[styles.featureTitle, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.featureDescription, { color: colors.subtext }]}>{description}</Text>
       </View>
     </View>
   );
 
   const StatItem = ({ value, label }) => (
     <View style={styles.statItem}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={[styles.statValue, { color: colors.primary }]}>{value}</Text>
+      <Text style={[styles.statLabel, { color: colors.subtext }]}>{label}</Text>
     </View>
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
@@ -71,13 +73,13 @@ const AboutScreen = ({ navigation }) => {
       </View>
 
       {/* Hero Section */}
-      <View style={styles.heroSection}>
+      <View style={[styles.heroSection, { backgroundColor: colors.surface }]}>
         <View style={styles.logoContainer}>
         
-          <Text style={styles.appName}>FndParking</Text>
-          <Text style={styles.appTagline}>Your Community Parking Solution</Text>
+          <Text style={[styles.appName, { color: colors.text }]}>FndParking</Text>
+          <Text style={[styles.appTagline, { color: colors.subtext }]}>Your Community Parking Solution</Text>
         </View>
-        <Text style={styles.heroText}>
+        <Text style={[styles.heroText, { color: colors.subtext }]}>
           A community-driven parking solution that connects drivers with available 
           parking spots in real-time. Making parking stress-free through innovation 
           and community collaboration.

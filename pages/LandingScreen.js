@@ -1,6 +1,6 @@
 import { decode } from '@mapbox/polyline';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Animated, Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { auth, db } from '../FirebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { signOut } from 'firebase/auth';
 import * as Location from 'expo-location';
+import { useTheme } from '../context/ThemeContext';
 
 
 
@@ -21,6 +22,7 @@ import { collection, addDoc, serverTimestamp, onSnapshot, query,where,doc,update
 const GOOGLE_MAPS_API_KEY = 'AIzaSyCKtNejSn8b2ZOQq6hStVM6t2lXtj1j7mY'; // Replace with your actual key
 
 const LandingScreen = ({ navigation }) => {
+  const { isDark, colors } = useTheme();
   // Menu state
   const [menuVisible, setMenuVisible] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -36,6 +38,7 @@ const LandingScreen = ({ navigation }) => {
   const [distance, setDistance] = useState('');
   const [duration, setDuration] = useState('');
   const mapRef = useRef(null);
+  const [parkingRadius, setParkingRadius] = useState(500); // meters
 
   //for popup
 const [showArrivalPopup, setShowArrivalPopup] = useState(false);
@@ -94,8 +97,8 @@ const handleConfirm = async () => {
 //handle fraud function 
 const handleReportFraud = () => {
   if (arrivalMarker) {
-    console.log('🔄 Reporting fraud against:', arrivalMarker);
     hidePopup(); // Hide popup first
+    setSelectedMarker(null);
     setTimeout(() => {
       reportFraud(arrivalMarker); // Then show fraud report
     }, 300);
@@ -131,36 +134,23 @@ const resetArrivalState = () => {
 //update park location
 const updateLocationSatatus =  async (userId, status) => {
   try {
-    console.log('🛠️ SERVICE CALLED ======================');
-    console.log(' slot ID :', userId);
-    console.log('🎯 Target Status:', status);
-    
     const userRef = doc(db, 'parkingLocations', userId);
-    
     // Create the update data
     const updateData = {
       status: status,
       updatedAt: new Date()
-    };
-    
-    console.log('📝 Base update data:', updateData);
-    
+    };  
     // Add deactivatedAt only when deactivating
     if (status === 'deactivated') {
       updateData.deactivatedAt = new Date();
-      console.log('🔴 Added deactivatedAt timestamp');
     } else if (status === 'active') {
       // Clear deactivatedAt when reactivating
       updateData.deactivatedAt = null;
-      console.log('🟢 Cleared deactivatedAt field');
     }
     
-    console.log('📝 Final update data:', updateData);
-    
     // Perform the update
-    console.log('🚀 Sending update to Firestore...');
     await updateDoc(userRef, updateData);
-    console.log('✅ Firestore update successful!');
+    
     
     return { success: true };
     
@@ -175,7 +165,6 @@ const updateLocationSatatus =  async (userId, status) => {
   const removeData = async (key) => {
     try {
       await AsyncStorage.removeItem(key);
-      console.log('Data removed successfully');
     } catch (e) {
       console.error('Error removing data:', e);
     }
@@ -191,8 +180,6 @@ const logout = async () => {
       index: 0,
       routes: [{ name: 'Login' }],
     });
-    
-    console.log('Logout successful');
   } catch (error) {
     console.error('Logout error:', error);
   }
@@ -281,7 +268,6 @@ const logout = async () => {
 
   const fetchRoute = async (origin, destination) => {
     try {
-      console.log('Fetching route from:', origin, 'to:', destination);
       const response = await fetch(`https://routes.googleapis.com/directions/v2:computeRoutes`, {
         method: 'POST',
         headers: {
@@ -401,20 +387,34 @@ useEffect(() => {
     }
   };
 }, [userLocation, selectedMarker, showArrivalPopup]); // ✅ Add showArrivalPopup dependency
+
+// Load user settings (parking radius) from AsyncStorage
+useEffect(() => {
+  const loadSettings = async () => {
+    try {
+      const savedSettings = await AsyncStorage.getItem('parkingSettings');
+      if (savedSettings) {
+        const parsed = JSON.parse(savedSettings);
+        if (parsed?.parkingRadius) {
+          setParkingRadius(parsed.parkingRadius);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading parking settings on landing screen:', error);
+    }
+  };
+
+  loadSettings();
+}, []);
 //my fraud function 
 const reportFraud = async (marker) => {
-  try {
-    console.log('🚨 STARTING FRAUD REPORT ======================');
-    console.log('📍 Complete marker data:', marker);
-    
+  try {    
     // Extract user info directly from marker
     const reportedUserInfo = {
       userId: marker.reportedBy || 'unknown',
       userEmail: marker.reportedByEmail || 'unknown@example.com',
       userName: marker.reportedByName || 'Anonymous User'
     };
-    
-    console.log('👤 Reported user extracted:', reportedUserInfo);
     
     // Get current user info (reporter)
     const currentUser = auth.currentUser;
@@ -424,8 +424,6 @@ const reportFraud = async (marker) => {
       userName: currentUser?.displayName || 'Anonymous Reporter'
     };
     
-    console.log('👮 Reporter info:', reporterInfo);
-
     const obfuscateEmail = (email) => {
   if (!email) return '';
   
@@ -457,8 +455,6 @@ const message = `User ${obfuscateEmail(reportedUserInfo.userEmail)} has been rep
           style: "destructive",
           onPress: async () => {
             try {
-              console.log('✅ User confirmed fraud report');
-              
               // Create fraud report with ALL user information
               const fraudReport = {
                 // Reported user (who created the parking spot)
@@ -500,18 +496,9 @@ const message = `User ${obfuscateEmail(reportedUserInfo.userEmail)} has been rep
                 reportSource: "mobile_app",
                 coordinatesVerified: true
               };
-
-              console.log('📝 Creating fraud report with user info:', {
-                reportedEmail: fraudReport.reportedUser.userEmail,
-                reporterEmail: fraudReport.reporterUser.userEmail,
-                markerId: fraudReport.reportedMarkerId
-              });
               
               // Add to Firestore
-              const docRef = await addDoc(collection(db, 'fraudReports'), fraudReport);
-              
-              console.log('✅ Fraud report created with ID:', docRef.id);
-              
+              const docRef = await addDoc(collection(db, 'fraudReports'), fraudReport); 
               // Update the marker's fraud report count
               try {
                 const markerRef = doc(db, 'parkingLocations', marker.id);
@@ -520,9 +507,7 @@ const message = `User ${obfuscateEmail(reportedUserInfo.userEmail)} has been rep
                   lastReportedAt: serverTimestamp(),
                   status: "reported"
                 });
-                console.log('✅ Marker updated with fraud count');
               } catch (updateError) {
-                console.warn('⚠️ Could not update marker:', updateError.message);
                 // Continue anyway - the report was created successfully
               }
 
@@ -576,7 +561,6 @@ useEffect(() => {
 
 useEffect(() => {
   if (!db) {
-    console.log("Firestore not initialized");
     return;
   }
 
@@ -588,19 +572,6 @@ useEffect(() => {
     const markersData = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      
-      // Log to verify ALL fields are present
-      console.log("📄 FULL Firestore Document:", {
-        id: doc.id,
-        hasReportedByEmail: !!data.reportedByEmail,
-        hasReportedBy: !!data.reportedBy,
-        hasReportedByName: !!data.reportedByName,
-        reportedByEmail: data.reportedByEmail,
-        reportedBy: data.reportedBy,
-        reportedByName: data.reportedByName,
-        allFields: Object.keys(data) // Show all field names
-      });
-      
       const latitude = data.latitude || data.coordinate?.latitude;
       const longitude = data.longitude || data.coordinate?.longitude;
       
@@ -627,19 +598,7 @@ useEffect(() => {
       }
     });
     
-    console.log(`✅ Loaded ${markersData.length} markers with user data`);
-    
-    // Verify first marker has correct data
-    if (markersData.length > 0) {
-      const firstMarker = markersData[0];
-      console.log("🔍 First marker verification:", {
-        id: firstMarker.id,
-        email: firstMarker.reportedByEmail,
-        uid: firstMarker.reportedBy,
-        name: firstMarker.reportedByName
-      });
-    }
-    
+    // Verify first marker has cor  
     setMarkers(markersData);
   }, (error) => {
     console.error("❌ Firestore error:", error);
@@ -648,6 +607,7 @@ useEffect(() => {
   return () => unsubscribe();
  
 }, [db]);
+
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -689,7 +649,6 @@ useEffect(() => {
       );
       
       if (testResponse.status === 200) {
-        console.log('API key is working');
       } else {
         console.error('API key error:', testResponse.status);
       }
@@ -703,9 +662,10 @@ useEffect(() => {
 
   return (
     <>
-      <StatusBar style="dark" />
-      <SafeAreaView style={styles.container}>
-        <View style={styles.container}>
+      {/* Match other screens: primary-colored header / status bar area */}
+      <StatusBar style={isDark ? 'light' : 'light'} backgroundColor={colors.primary} />
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.primary }]}>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
           <TouchableOpacity
             style={styles.menuButton}
              onPress={() => {
@@ -742,7 +702,25 @@ useEffect(() => {
               />
             )}
 
-           {markers.map(marker => (
+           {markers
+  .filter(marker => {
+    // If we don't have a user location yet, don't filter
+    if (!userLocation) return true;
+
+    // Ensure we have numeric coordinates
+    const markerLat = Number(marker.latitude);
+    const markerLng = Number(marker.longitude);
+    if (Number.isNaN(markerLat) || Number.isNaN(markerLng)) return false;
+
+    const d = getDistance(
+      { latitude: userLocation.latitude, longitude: userLocation.longitude },
+      { latitude: markerLat, longitude: markerLng }
+    );
+
+    // Keep markers within the selected radius (in meters)
+    return d <= parkingRadius;
+  })
+  .map(marker => (
   <Marker
     key={marker.id}
     coordinate={{
@@ -750,16 +728,8 @@ useEffect(() => {
       longitude: Number(marker.longitude)
     }}
     onPress={() => {
-      console.log("🎯 Marker pressed - ALL DATA:", {
-        id: marker.id,
-        email: marker.reportedByEmail,
-        uid: marker.reportedBy,
-        name: marker.reportedByName,
-        fullMarker: marker
-      });
-
-        // Reset any existing popup state
-  if (showArrivalPopup) {
+    // Reset any existing popup state
+     if (showArrivalPopup) {
     hidePopup();
   }
   
@@ -838,7 +808,7 @@ useEffect(() => {
       {/* No Button */}
       <TouchableOpacity 
         style={[styles.arrivalPopupButton, styles.reportButton]}
-        onPress={handleNo} // ✅ Use the new function
+        onPress={handleConfirm} // ✅ Use the new function
         disabled={isPopupClosing}
       >
         <Text style={styles.arrivalPopupButtonText}>

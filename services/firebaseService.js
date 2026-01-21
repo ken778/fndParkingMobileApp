@@ -26,10 +26,8 @@ export const parkingSpotsService = {
       const q = query(spotsRef);
       const snapshot = await getDocs(q);
       
-      console.log('Parking spots found:', snapshot.size);
       const spots = snapshot.docs.map(doc => {
         const data = doc.data();
-        console.log(`Spot ${doc.id}:`, data);
         return {
           id: doc.id,
           ...data
@@ -42,7 +40,6 @@ export const parkingSpotsService = {
       
       // If ordering fails, try without order
       if (error.code === 'failed-precondition') {
-        console.log('Retrying without orderBy...');
         const spotsRef = collection(db, 'parkingLocations');
         const snapshot = await getDocs(spotsRef);
         return snapshot.docs.map(doc => ({
@@ -95,11 +92,8 @@ export const parkingSpotsService = {
           where('reportedUser.userId', '==', userId)  // ✅ Query nested field
         );
       const snapshot = await getDocs(spotsRef);
-      
-      console.log('fraudReportsParking spots found:', snapshot.size);
       const spots = snapshot.docs.map(doc => {
         const data = doc.data();
-        console.log(`fraudReports ${doc.id}:`, data);
         return {
           id: doc.id,
           ...data
@@ -112,7 +106,6 @@ export const parkingSpotsService = {
       
       // If ordering fails, try without order
       if (error.code === 'failed-precondition') {
-        console.log('Retrying without orderBy...');
         const spotsRef = collection(db, 'fraudReports');
         const snapshot = await getDocs(spotsRef);
         return snapshot.docs.map(doc => ({

@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { onAuthStateChanged } from 'firebase/auth';
 import SignUpScreen from './pages/SignUpScreen';
@@ -17,6 +17,7 @@ import * as SecureStore from 'expo-secure-store';
 import AboutScreen from './pages/AboutScreen';
 import HelpSupportScreen from './pages/HelpSupportScreen';
 import PrivacyScreen from './pages/PrivacyScreen';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 
 const Stack = createStackNavigator();
 
@@ -69,65 +70,76 @@ useEffect(() => {
   }
 
   return (
-  <NavigationContainer>
-  <StatusBar style="auto" />
-  <Stack.Navigator>
+    <ThemeProvider>
+      <ThemedAppNavigator />
+    </ThemeProvider>
+  );
+}
+
+function ThemedAppNavigator() {
+  const { isDark } = useTheme();
+  const navTheme = isDark ? DarkTheme : DefaultTheme;
+
+  return (
+    <NavigationContainer theme={navTheme}>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <Stack.Navigator>
         <Stack.Screen 
           name="Landing" 
           component={LandingScreen} 
           options={{ 
-            headerShown: false,
+            headerShown: false, animation:"fade"
           }} 
         />
          <Stack.Screen 
           name="Profile" 
           component={ProfileScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false, animation:"fade" }} 
         />
           <Stack.Screen 
           name="Settings" 
           component={SettingsScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false, animation:"fade" }} 
         />
            <Stack.Screen 
           name="History" 
           component={HistoryScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false, animation:"fade" }} 
         />
   
         <Stack.Screen 
           name="Login" 
           component={LoginScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false, animation:"fade" }} 
         />
         <Stack.Screen 
           name="SignUp" 
           component={SignUpScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false, animation:"fade" }} 
         />
         <Stack.Screen 
           name="ForgotPassword" 
           component={ForgotPasswordScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false, animation:"fade" }} 
         />
         <Stack.Screen 
           name="AboutScreen" 
           component={AboutScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false, animation:"fade" }} 
         />
         <Stack.Screen 
           name="HelpSupportScreen" 
           component={HelpSupportScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false, animation:"fade" }} 
         />
         <Stack.Screen 
           name="PrivacyScreen" 
           component={PrivacyScreen} 
-          options={{ headerShown: false }} 
+          options={{ headerShown: false, animation:"fade" }} 
         />
     
  
-  </Stack.Navigator>
-</NavigationContainer>
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }

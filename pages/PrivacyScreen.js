@@ -11,8 +11,10 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
 
 const PrivacyScreen = ({ navigation }) => {
+  const { colors } = useTheme();
   const [privacySettings, setPrivacySettings] = useState({
     locationTracking: true,
     dataCollection: true,
@@ -158,9 +160,9 @@ const PrivacyScreen = ({ navigation }) => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
@@ -169,13 +171,15 @@ const PrivacyScreen = ({ navigation }) => {
 
       {/* Last Updated */}
       <View style={styles.lastUpdated}>
-        <Icon name="update" size={16} color="#666" />
-        <Text style={styles.lastUpdatedText}>Last updated: January 15, 2024</Text>
+        <Icon name="update" size={16} color={colors.subtext} />
+        <Text style={[styles.lastUpdatedText, { color: colors.subtext }]}>
+          Last updated: January 15, 2024
+        </Text>
       </View>
 
       {/* Introduction */}
-      <View style={styles.section}>
-        <Text style={styles.introText}>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.introText, { color: colors.text }]}>
           At FndParking, we take your privacy seriously. This page explains how we collect, 
           use, and protect your personal information. You have control over your data.
         </Text>

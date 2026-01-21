@@ -7,11 +7,13 @@ import { auth, db } from '../FirebaseConfig'; // Make sure to import db
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { increment } from 'firebase/firestore';
 import * as SecureStore from 'expo-secure-store';
+import { Ionicons } from '@expo/vector-icons';
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   
   // Animation values
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -27,6 +29,33 @@ const LoginScreen = ({ navigation }) => {
   //     console.error('Error saving data:', e);
   //   }
   // };
+
+  //const error messages 
+  const authErrorMessages = {
+  // User doesn't exist
+  'auth/user-not-found': 'No account found with this email. Please check your email or sign up.',
+  
+  // Wrong password
+  'auth/wrong-password': 'Incorrect password. Please try again or reset your password.',
+  
+  // Invalid email format
+  'auth/invalid-email': 'Please enter a valid email address (e.g., name@example.com).',
+  
+  // User disabled
+  'auth/user-disabled': 'This account has been disabled. Please contact support.',
+  
+  // Too many requests
+  'auth/too-many-requests': 'Too many unsuccessful attempts. Please try again later or reset your password.',
+  
+  // Network errors
+  'auth/network-request-failed': 'Network error. Please check your connection and try again.',
+  
+  // Invalid credentials (generic)
+  'auth/invalid-credential': 'Invalid login credentials. Please check your email and password.',
+  
+  // Default fallback
+  'default': 'Unable to sign in. Please check your credentials and try again.',
+};
   //for expo secure 
   const storeUserData = async (key, value) => {
   try {
@@ -150,27 +179,29 @@ const LoginScreen = ({ navigation }) => {
     console.error('Login error details:', error);
     setIsLoading(false);
     
-    let errorMessage = "Login failed. Please try again.";
+    // let errorMessage = "Login failed. Please try again.";
     
-    switch(error.code) {
-      case 'auth/invalid-email':
-        errorMessage = "Invalid email address";
-        break;
-      case 'auth/user-disabled':
-        errorMessage = "This account has been disabled by administrator";
-        break;
-      case 'auth/user-not-found':
-        errorMessage = "No account found with this email";
-        break;
-      case 'auth/wrong-password':
-        errorMessage = "Invalid email or password";
-        break;
-      case 'auth/network-request-failed':
-        errorMessage = "Network error. Please check your connection.";
-        break;
-      default:
-        errorMessage = error.message;
-    }
+    // switch(error.code) {
+    //   case 'auth/invalid-email':
+    //     errorMessage = "Invalid email address";
+    //     break;
+    //   case 'auth/user-disabled':
+    //     errorMessage = "This account has been disabled by administrator";
+    //     break;
+    //   case 'auth/user-not-found':
+    //     errorMessage = "No account found with this email";
+    //     break;
+    //   case 'auth/wrong-password':
+    //     errorMessage = "Invalid email or password";
+    //     break;
+    //   case 'auth/network-request-failed':
+    //     errorMessage = "Network error. Please check your connection.";
+    //     break;
+    //   default:
+    //     errorMessage = error.message;
+    // }
+     const errorCode = error.code;
+     const errorMessage = authErrorMessages[errorCode] || authErrorMessages.default;
     
     Alert.alert("Login Error", errorMessage);
   }
@@ -191,7 +222,7 @@ const LoginScreen = ({ navigation }) => {
           style={[styles.innerContainer, { opacity: fadeAnim, transform: [{ translateY: slideUpAnim }] }]}
         >
           <Animated.Image
-            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/8573/8573854.png' }}
+              source={require('../assets/logo.png')} 
             style={[styles.logo, { transform: [{ scale: logoScale }] }]}
             resizeMode="contain"
           />
@@ -199,28 +230,40 @@ const LoginScreen = ({ navigation }) => {
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
           
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor="#b5b5b5"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#b5b5b5"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoComplete="password"
-            />
-          </View>
+        <View style={styles.inputContainer}>
+  <TextInput
+    style={styles.input}
+    placeholder="Email"
+    placeholderTextColor="#b5b5b5"
+    value={email}
+    onChangeText={setEmail}
+    keyboardType="email-address"
+    autoCapitalize="none"
+    autoComplete="email"
+  />
+  
+  <View style={styles.passwordWrapper}>
+    <TextInput
+      style={[styles.input, styles.passwordInput]}
+      placeholder="Password"
+      placeholderTextColor="#b5b5b5"
+      value={password}
+      onChangeText={setPassword}
+      secureTextEntry={!passwordVisible}
+      autoComplete="password"
+    />
+    <TouchableOpacity
+      style={styles.iconContainer}
+      onPress={() => setPasswordVisible(!passwordVisible)}
+    >
+      <Ionicons
+        name={passwordVisible ? "eye-off" : "eye"}
+        size={22}
+        color="#666"
+      />
+    </TouchableOpacity>
+  </View>
+</View>
           
           <TouchableOpacity 
             style={[styles.button, isLoading && styles.buttonDisabled]} 
@@ -280,7 +323,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     marginBottom: 30,
-    tintColor: '#fff',
+    borderRadius:100
   },
   title: {
     fontSize: 32,
@@ -301,6 +344,33 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
     marginBottom: 25,
+  },
+  input: {
+    width: '100%',
+    height: 56,
+    backgroundColor: '#2a2a2a',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    color: '#fff',
+    marginBottom: 16,
+  },
+  passwordWrapper: {
+    position: 'relative',
+    width: '100%',
+  },
+  passwordInput: {
+    paddingRight: 50, // Make room for the eye icon
+  },
+  iconContainer: {
+    position: 'absolute',
+    right: 15,
+    top: 16,
+    height: 24,
+    width: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
   },
   input: {
     height: 50,
@@ -356,7 +426,6 @@ const styles = StyleSheet.create({
   footerLink: {
     color: '#fff',
     fontWeight: '600',
-    textDecorationLine: 'underline',
   },
 });
 

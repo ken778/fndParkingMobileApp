@@ -11,8 +11,10 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import IconFA from 'react-native-vector-icons/FontAwesome';
+import { useTheme } from '../context/ThemeContext';
 
 const HelpSupportScreen = ({ navigation }) => {
+  const { colors } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState('general');
   const [message, setMessage] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -149,9 +151,9 @@ const HelpSupportScreen = ({ navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
@@ -159,31 +161,31 @@ const HelpSupportScreen = ({ navigation }) => {
       </View>
 
       {/* Quick Actions */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
         <View style={styles.quickActionsContainer}>
           <TouchableOpacity 
             style={styles.quickAction}
             onPress={handleEmergencyCall}
           >
             <Icon name="phone-in-talk" size={24} color="#4CAF50" />
-            <Text style={styles.quickActionText}>Emergency Call</Text>
+            <Text style={[styles.quickActionText, { color: colors.text }]}>Emergency Call</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.quickAction}
             onPress={() => Linking.openURL(`mailto:${contactInfo.supportEmail}`)}
           >
-            <Icon name="email" size={24} color="#4285F4" />
-            <Text style={styles.quickActionText}>Email Support</Text>
+            <Icon name="email" size={24} color={colors.primary} />
+            <Text style={[styles.quickActionText, { color: colors.text }]}>Email Support</Text>
           </TouchableOpacity>
         </View>
       </View>
       {/* FAQ List */}
-      <View style={styles.section}>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
         <View style={styles.faqHeader}>
-          <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
-          <Text style={styles.faqCount}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Frequently Asked Questions</Text>
+          <Text style={[styles.faqCount, { color: colors.subtext }]}>
             {faqData.filter(faq => faq.category === selectedCategory).length} questions
           </Text>
         </View>

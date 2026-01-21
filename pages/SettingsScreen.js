@@ -11,21 +11,25 @@ import {
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
+
+const DEFAULT_SETTINGS = {
+  parkingRadius: 500, // meters
+  maxWalkingDistance: 1000, // meters
+  parkingTypes: {
+    street: true,
+    garage: true,
+    lot: true,
+    free: true,
+    paid: true,
+  },
+  notifications: true,
+  trafficLayer: true,
+};
 
 const SettingsScreen = ({ navigation }) => {
-  const [settings, setSettings] = useState({
-    parkingRadius: 500, // meters
-    maxWalkingDistance: 1000, // meters
-    parkingTypes: {
-      street: true,
-      garage: true,
-      lot: true,
-      free: true,
-      paid: true
-    },
-    notifications: true,
-    trafficLayer: true
-  });
+  const { isDark, colors, toggleTheme } = useTheme();
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
 
   // Load settings from storage
   useEffect(() => {
@@ -36,7 +40,15 @@ const SettingsScreen = ({ navigation }) => {
     try {
       const savedSettings = await AsyncStorage.getItem('parkingSettings');
       if (savedSettings) {
-        setSettings(JSON.parse(savedSettings));
+        const parsed = JSON.parse(savedSettings);
+        // Merge with defaults to avoid missing or invalid values
+        setSettings({
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          parkingRadius: Number(parsed.parkingRadius) || DEFAULT_SETTINGS.parkingRadius,
+          maxWalkingDistance:
+            Number(parsed.maxWalkingDistance) || DEFAULT_SETTINGS.maxWalkingDistance,
+        });
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -45,8 +57,16 @@ const SettingsScreen = ({ navigation }) => {
 
   const saveSettings = async (newSettings) => {
     try {
-      await AsyncStorage.setItem('parkingSettings', JSON.stringify(newSettings));
-      setSettings(newSettings);
+      // Ensure we always persist a complete, numeric settings object
+      const safeSettings = {
+        ...DEFAULT_SETTINGS,
+        ...newSettings,
+        parkingRadius: Number(newSettings.parkingRadius) || DEFAULT_SETTINGS.parkingRadius,
+        maxWalkingDistance:
+          Number(newSettings.maxWalkingDistance) || DEFAULT_SETTINGS.maxWalkingDistance,
+      };
+      await AsyncStorage.setItem('parkingSettings', JSON.stringify(safeSettings));
+      setSettings(safeSettings);
     } catch (error) {
       console.error('Error saving settings:', error);
       Alert.alert('Error', 'Failed to save settings');
@@ -82,10 +102,14 @@ const SettingsScreen = ({ navigation }) => {
   const SettingsItem = ({ icon, title, description, children }) => (
     <View style={styles.settingsItem}>
       <View style={styles.settingsHeader}>
-        <Icon name={icon} size={24} color="#4285F4" style={styles.settingsIcon} />
+        <Icon name={icon} size={24} color={colors.primary} style={styles.settingsIcon} />
         <View style={styles.settingsText}>
-          <Text style={styles.settingsTitle}>{title}</Text>
-          {description && <Text style={styles.settingsDescription}>{description}</Text>}
+          <Text style={[styles.settingsTitle, { color: colors.text }]}>{title}</Text>
+          {description && (
+            <Text style={[styles.settingsDescription, { color: colors.subtext }]}>
+              {description}
+            </Text>
+          )}
         </View>
       </View>
       {children}
@@ -115,9 +139,9 @@ const SettingsScreen = ({ navigation }) => {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
@@ -125,13 +149,15 @@ const SettingsScreen = ({ navigation }) => {
       </View>
 
       {/* Parking Radius Setting */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Parking Preferences</Text>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text, borderBottomColor: colors.border }]}>
+          Parking Preferences
+        </Text>
         
         <SettingsItem
           icon="my-location"
           title="Parking Radius"
-          description={`${settings.parkingRadius}m from destination`}
+          description={`${Number(settings.parkingRadius) || DEFAULT_SETTINGS.parkingRadius}m from destination`}
         >
           <View style={styles.sliderContainer}>
             <Slider
@@ -139,15 +165,15 @@ const SettingsScreen = ({ navigation }) => {
               minimumValue={100}
               maximumValue={2000}
               step={50}
-              value={settings.parkingRadius}
+              value={Number(settings.parkingRadius) || DEFAULT_SETTINGS.parkingRadius}
               onValueChange={updateParkingRadius}
-              minimumTrackTintColor="#4285F4"
+              minimumTrackTintColor={colors.primary}
               maximumTrackTintColor="#ddd"
-              thumbTintColor="#4285F4"
+              thumbTintColor={colors.primary}
             />
             <View style={styles.sliderLabels}>
-              <Text style={styles.sliderLabel}>100m</Text>
-              <Text style={styles.sliderLabel}>2km</Text>
+              <Text style={[styles.sliderLabel, { color: colors.subtext }]}>100m</Text>
+              <Text style={[styles.sliderLabel, { color: colors.subtext }]}>2km</Text>
             </View>
           </View>
         </SettingsItem>
@@ -166,38 +192,40 @@ const SettingsScreen = ({ navigation }) => {
               step={50}
               value={settings.maxWalkingDistance}
               onValueChange={updateWalkingDistance}
-              minimumTrackTintColor="#4285F4"
+              minimumTrackTintColor={colors.primary}
               maximumTrackTintColor="#ddd"
-              thumbTintColor="#4285F4"
+              thumbTintColor={colors.primary}
             />
             <View style={styles.sliderLabels}>
-              <Text style={styles.sliderLabel}>100m</Text>
-              <Text style={styles.sliderLabel}>3km</Text>
+              <Text style={[styles.sliderLabel, { color: colors.subtext }]}>100m</Text>
+              <Text style={[styles.sliderLabel, { color: colors.subtext }]}>3km</Text>
             </View>
           </View>
         </SettingsItem>
       </View>
 
       {/* General Settings */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>General Settings</Text>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text, borderBottomColor: colors.border }]}>
+          General Settings
+        </Text>
 
         <SettingsItem
           icon="map"
           title="Dark Mode"
-          description="switch modes"
+          description={isDark ? 'On (dark)' : 'Off (light)'}
         >
           <Switch
-            value={settings.trafficLayer}
-            onValueChange={() => toggleSetting('trafficLayer')}
-            trackColor={{ false: '#ddd', true: '#4285F4' }}
-            thumbColor={settings.trafficLayer ? '#fff' : '#f4f3f4'}
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: '#ddd', true: colors.primary }}
+            thumbColor={isDark ? '#fff' : '#f4f3f4'}
           />
         </SettingsItem>
       </View>
 
       {/* Reset Settings */}
-      <View style={styles.section}>
+      <View style={[styles.section, { backgroundColor: colors.surface }]}>
         <TouchableOpacity 
           style={styles.resetButton}
           onPress={() => {
@@ -230,8 +258,8 @@ const SettingsScreen = ({ navigation }) => {
             );
           }}
         >
-          <Icon name="restart-alt" size={20} color="#ff4444" />
-          <Text style={styles.resetButtonText}>Reset to Default Settings</Text>
+          <Icon name="restart-alt" size={20} color={colors.danger} />
+          <Text style={[styles.resetButtonText, { color: colors.danger }]}>Reset to Default Settings</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

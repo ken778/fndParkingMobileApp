@@ -7,11 +7,13 @@ import * as SecureStore from 'expo-secure-store';
 import { parkingSpotsService } from '../services/firebaseService';
 import { signOut } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
 
 
 
 
 const ProfileScreen = ({ navigation }) => {
+  const { colors } = useTheme();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loggedInUser, setLoggedInUser] = useState(null)
@@ -96,72 +98,47 @@ const ProfileScreen = ({ navigation }) => {
     try {
       setLoading(true);
       setError('');
-      console.log('Loading parking spots from parkingLocations...');
+
 
       const spotsData = await parkingSpotsService.getParkingSpots(uid);
-      console.log('Loaded spots:', spotsData);
       setSpots(spotsData);
     } catch (error) {
-      console.error('Error loading parking spots:', error);
       setError(`Failed to load parking spots: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-    const removeData = async (key) => {
+  const removeData = async (key) => {
     try {
       await AsyncStorage.removeItem(key);
-      console.log('Data removed successfully');
     } catch (e) {
       console.error('Error removing data:', e);
     }
   };
 
-    //logout
+  //logout
   const logout = async () => {
     try {
       await signOut(auth);
       await removeData('user');
-      
+
       // Use reset instead of navigate to completely replace the navigation stack
       navigation.reset({
         index: 0,
         routes: [{ name: 'Login' }],
       });
-      
-      console.log('Logout successful');
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
 
-
-
-
-
-  const unsubscribeLocations = async () => {
-    // Set up real-time listener
-    const unsubscribe = parkingSpotsService.subscribeToParkingSpots((realTimeSpots) => {
-      console.log('Real-time update received:', realTimeSpots.length, 'spots');
-      setSpots(realTimeSpots);
-    });
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }
-
   //get fraud reported locations
-  
-  const getFraudReported = async(userId)=>{
+  const getFraudReported = async (userId) => {
     const fraudData = await parkingSpotsService.getFraudReportedLocations(userId);
-    
-     console.log('reported users ',fraudData)
-   
     setfraudSpots(fraudData)
-   
+
   }
 
 
@@ -200,7 +177,6 @@ const ProfileScreen = ({ navigation }) => {
       if (userData) {
         // Parse the JSON string back to object
         const parsedData = JSON.parse(userData);
-        console.log('User data retrieved:', parsedData);
         setLoggedInUser(parsedData)
         loadParkingSpots(parsedData?.uid);
         getFraudReported(parsedData?.uid)
@@ -209,7 +185,7 @@ const ProfileScreen = ({ navigation }) => {
         return parsedData;
       }
 
-      console.log('No user data found');
+
       return null;
     } catch (error) {
       console.error('Error retrieving user data:', error);
@@ -219,9 +195,32 @@ const ProfileScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4285F4" />
-        <Text>Loading profile...</Text>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.skeletonHeader}>
+          <View style={styles.skeletonTitle} />
+          <View style={styles.skeletonTitle} />
+        </View>
+
+        <View style={styles.skeletonProfile}>
+          <View style={styles.skeletonAvatar} />
+          <View style={styles.skeletonName} />
+          <View style={styles.skeletonEmail} />
+        </View>
+
+        <View style={styles.skeletonCard}>
+          <View style={styles.skeletonRow}>
+            <View style={styles.skeletonIcon} />
+            <View style={styles.skeletonText} />
+          </View>
+          <View style={styles.skeletonRow}>
+            <View style={styles.skeletonIcon} />
+            <View style={styles.skeletonText} />
+          </View>
+          <View style={styles.skeletonRow}>
+            <View style={styles.skeletonIcon} />
+            <View style={styles.skeletonText} />
+          </View>
+        </View>
       </View>
     );
   }
@@ -229,12 +228,9 @@ const ProfileScreen = ({ navigation }) => {
 
 
   return (
-
-
-
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.primary }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Icon name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
@@ -246,7 +242,7 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.initials}>{getInitialsFromEmail(loggedInUser?.email)}</Text>
         </View>
 
-      
+
 
         {/* Stats Row */}
         <View style={styles.statsRow}>
@@ -323,18 +319,18 @@ const ProfileScreen = ({ navigation }) => {
                     { text: 'Logout', style: 'destructive', onPress: () => logout() }
                   ]
                 );
-              } 
-              if(item.label ==="Settings"){
-               navigation.navigate('Settings');
               }
-              if(item.label ==="About"){
-               navigation.navigate('AboutScreen');
+              if (item.label === "Settings") {
+                navigation.navigate('Settings');
               }
-              if(item.label ==="Help & Support"){
-               navigation.navigate('HelpSupportScreen');
+              if (item.label === "About") {
+                navigation.navigate('AboutScreen');
               }
-              if(item.label ==="Privacy"){
-               navigation.navigate('PrivacyScreen');
+              if (item.label === "Help & Support") {
+                navigation.navigate('HelpSupportScreen');
+              }
+              if (item.label === "Privacy") {
+                navigation.navigate('PrivacyScreen');
               }
             }}
           >
@@ -359,7 +355,7 @@ const ProfileScreen = ({ navigation }) => {
 
       {/* App Version */}
       <View style={styles.footer}>
-        <Text style={styles.versionText}>ParkEase v1.0.0</Text>
+        <Text style={styles.versionText}>FndParking v1.0.0</Text>
       </View>
     </ScrollView>
 
@@ -600,6 +596,75 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: 15,
+  },
+  skeletonHeader: {
+    backgroundColor: '#4285F4',
+    padding: 20,
+    paddingTop: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  skeletonBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  skeletonTitle: {
+    width: 100,
+    height: 24,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 12,
+    marginLeft: 15,
+  },
+  skeletonProfile: {
+    alignItems: 'center',
+    padding: 30,
+    backgroundColor: '#fff',
+  },
+  skeletonAvatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#f0f0f0',
+    marginBottom: 20,
+  },
+  skeletonName: {
+    width: 180,
+    height: 28,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 14,
+    marginBottom: 10,
+  },
+  skeletonEmail: {
+    width: 220,
+    height: 20,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+  },
+  skeletonCard: {
+    backgroundColor: '#fff',
+    margin: 20,
+    padding: 20,
+    borderRadius: 16,
+  },
+  skeletonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  skeletonIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#f0f0f0',
+    marginRight: 15,
+  },
+  skeletonText: {
+    flex: 1,
+    height: 20,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
   },
 
 });

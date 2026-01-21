@@ -4,6 +4,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore'; // Add Firestore imports
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../FirebaseConfig'; // Make sure db is exported from FirebaseConfig
+import { Ionicons } from '@expo/vector-icons';
 
 const SignUpScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -11,6 +12,8 @@ const SignUpScreen = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState(''); // Add name field
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   
   // Animation values
   const fadeAnim = useState(new Animated.Value(0))[0];
@@ -138,57 +141,84 @@ const SignUpScreen = ({ navigation }) => {
           style={[styles.innerContainer, { opacity: fadeAnim, transform: [{ translateY: slideUpAnim }] }]}
         >
           <Animated.Image
-            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/8573/8573854.png' }}
+            source={require('../assets/logo.png')} 
             style={[styles.logo, { transform: [{ scale: logoScale }] }]}
             resizeMode="contain"
           />
           
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join us to get started</Text>
-          
-          <View style={styles.inputContainer}>
-            {/* Add Name Input */}
-            <TextInput
-              style={styles.input}
-              placeholder="Full Name"
-              placeholderTextColor="#b5b5b5"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-              autoComplete="name"
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor="#b5b5b5"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#b5b5b5"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoComplete="password"
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm Password"
-              placeholderTextColor="#b5b5b5"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              autoComplete="password"
-            />
-          </View>
+         <View style={styles.inputContainer}>
+  {/* Add Name Input */}
+  <TextInput
+    style={styles.input}
+    placeholder="Full Name"
+    placeholderTextColor="#b5b5b5"
+    value={name}
+    onChangeText={setName}
+    autoCapitalize="words"
+    autoComplete="name"
+  />
+  
+  <TextInput
+    style={styles.input}
+    placeholder="Email"
+    placeholderTextColor="#b5b5b5"
+    value={email}
+    onChangeText={setEmail}
+    keyboardType="email-address"
+    autoCapitalize="none"
+    autoComplete="email"
+  />
+  
+  {/* Password Input */}
+  <View style={styles.passwordWrapper}>
+    <TextInput
+      style={[styles.input, styles.passwordInput]}
+      placeholder="Password"
+      placeholderTextColor="#b5b5b5"
+      value={password}
+      onChangeText={setPassword}
+      secureTextEntry={!passwordVisible}
+      autoComplete="password"
+    />
+    <TouchableOpacity
+      style={styles.iconContainer}
+      onPress={() => setPasswordVisible(!passwordVisible)}
+      accessibilityLabel={passwordVisible ? "Hide password" : "Show password"}
+    >
+      <Ionicons
+        name={passwordVisible ? "eye-off" : "eye"}
+        size={22}
+        color="#666"
+      />
+    </TouchableOpacity>
+  </View>
+  
+  {/* Confirm Password Input */}
+  <View style={styles.passwordWrapper}>
+    <TextInput
+      style={[styles.input, styles.passwordInput]}
+      placeholder="Confirm Password"
+      placeholderTextColor="#b5b5b5"
+      value={confirmPassword}
+      onChangeText={setConfirmPassword}
+      secureTextEntry={!confirmPasswordVisible}
+      autoComplete="password"
+    />
+    <TouchableOpacity
+      style={styles.iconContainer}
+      onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+      accessibilityLabel={confirmPasswordVisible ? "Hide confirm password" : "Show confirm password"}
+    >
+      <Ionicons
+        name={confirmPasswordVisible ? "eye-off" : "eye"}
+        size={22}
+        color="#666"
+      />
+    </TouchableOpacity>
+  </View>
+</View>
           
           <TouchableOpacity 
             style={[styles.button, isLoading && styles.buttonDisabled]} 
@@ -239,7 +269,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     marginBottom: 30,
-    tintColor: '#fff',
+    borderRadius:100
   },
   title: {
     fontSize: 32,
@@ -260,6 +290,24 @@ const styles = StyleSheet.create({
   inputContainer: {
     width: '100%',
     marginBottom: 25,
+  },
+  passwordWrapper: {
+    position: 'relative',
+    width: '100%',
+    marginBottom: 16,
+  },
+  passwordInput: {
+    paddingRight: 50, // Make room for the eye icon
+  },
+  iconContainer: {
+    position: 'absolute',
+    right: 15,
+    top: 16,
+    height: 24,
+    width: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
   },
   input: {
     height: 50,
@@ -308,7 +356,7 @@ const styles = StyleSheet.create({
   footerLink: {
     color: '#fff',
     fontWeight: '600',
-    textDecorationLine: 'underline',
+   
   },
 });
 
