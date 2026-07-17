@@ -10,7 +10,7 @@ import {
   Alert
 } from 'react-native';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
-import IconFA from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome as IconFA } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 
 const HelpSupportScreen = ({ navigation }) => {
