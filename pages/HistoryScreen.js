@@ -9,7 +9,7 @@ import {
   Alert,
   RefreshControl
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { auth, db } from '../FirebaseConfig';
 import { collection, query, where, orderBy, getDocs, doc, getDoc } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
