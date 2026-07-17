@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import SignUpScreen from './pages/SignUpScreen';
 import LoginScreen from './pages/LoginScreen';
 import LandingScreen from './pages/LandingScreen';
+import EditProfileScreen from './pages/EditProfileScreen';
 import { auth } from './FirebaseConfig';
 import React, { useState, useEffect } from 'react';
 import ForgotPasswordScreen from './pages/ForgotPasswordScreen';
@@ -25,39 +26,41 @@ export default function App() {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState(null);
   
-
   const getData = async (key) => {
-  try {
-    const jsonValue = await AsyncStorage.getItem(key);
-    return jsonValue != null ? JSON.parse(jsonValue) : null;
-  } catch (e) {
-    console.error('Error reading data:', e);
-    return null;
-  }
-};
+    try {
+      const jsonValue = await AsyncStorage.getItem(key);
+      return jsonValue != null ? JSON.parse(jsonValue) : null;
+    } catch (e) {
+      console.error('Error reading data:', e);
+      return null;
+    }
+  };
 
-//for expo secure sore 
-const getUserData = async (key) => {
-  try {
-    const jsonValue = await SecureStore.getItemAsync(key);
-    return jsonValue != null ? JSON.parse(jsonValue) : null;
-  } catch (e) {
-    console.error('Error reading data:', e);
-    return null;
-  }
-};
+  const getUserData = async (key) => {
+    try {
+      const jsonValue = await SecureStore.getItemAsync(key);
+      return jsonValue != null ? JSON.parse(jsonValue) : null;
+    } catch (e) {
+      console.error('Error reading data:', e);
+      return null;
+    }
+  };
 
-
-  // Handle user auth state changes
-useEffect(() => {
-  const userLoggedin = getData('user');
-  const currentUser = getUserData('user')
-  
-  if(currentUser) {
-    console.log("User logged in:", userLoggedin); // Add this line
-    setUser(currentUser);
+  useEffect(() => {
+  // Listen for Firebase Auth state changes
+  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    if (firebaseUser) {
+      setUser(firebaseUser); // User logged in!
+      // Optional: Save to SecureStore here if you still need it locally
+      // SecureStore.setItemAsync('user', JSON.stringify(firebaseUser));
+    } else {
+      setUser(null); // User logged out
+    }
     setInitializing(false);
-  }
+  });
+
+  // Cleanup listener on unmount
+  return () => unsubscribe();
 }, []);
 
   // Show loading indicator while checking auth state
@@ -71,74 +74,54 @@ useEffect(() => {
 
   return (
     <ThemeProvider>
-      <ThemedAppNavigator />
+      {/* ✅ FIX 1: Pass the 'user' state down to the navigator as a prop! */}
+      <ThemedAppNavigator user={user} />
     </ThemeProvider>
   );
 }
 
-function ThemedAppNavigator() {
+// ✅ FIX 2: Accept 'user' as a prop in the function parameters
+function ThemedAppNavigator({ user }) {
   const { isDark } = useTheme();
   const navTheme = isDark ? DarkTheme : DefaultTheme;
+
+  // ✅ FIX 3: Define screens in arrays. This prevents any React Navigation Fragment errors.
+  const appScreens = [
+    { name: "Landing", component: LandingScreen },
+    { name: "Profile", component: ProfileScreen },
+    { name: "Settings", component: SettingsScreen },
+    { name: "History", component: HistoryScreen },
+    { name: "AboutScreen", component: AboutScreen },
+    { name: "HelpSupportScreen", component: HelpSupportScreen },
+    { name: "PrivacyScreen", component: PrivacyScreen },
+    { name: "EditProfileScreen", component: EditProfileScreen }
+  ];
+
+  const authScreens = [
+    { name: "Login", component: LoginScreen },
+    { name: "SignUp", component: SignUpScreen },
+    { name: "ForgotPassword", component: ForgotPasswordScreen },
+  ];
+
+  // Choose which array to render based on the 'user' prop
+  const screensToRender = user ? appScreens : authScreens;
 
   return (
     <NavigationContainer theme={navTheme}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
+      
+      {/* No need to check 'initializing' here because the App component 
+          already handles the loading screen and won't render this until it's false! */}
       <Stack.Navigator>
-        <Stack.Screen 
-          name="Landing" 
-          component={LandingScreen} 
-          options={{ 
-            headerShown: false, animation:"fade"
-          }} 
-        />
-         <Stack.Screen 
-          name="Profile" 
-          component={ProfileScreen} 
-          options={{ headerShown: false, animation:"fade" }} 
-        />
+        {/* Map over the array to render the screens safely */}
+        {screensToRender.map((screen) => (
           <Stack.Screen 
-          name="Settings" 
-          component={SettingsScreen} 
-          options={{ headerShown: false, animation:"fade" }} 
-        />
-           <Stack.Screen 
-          name="History" 
-          component={HistoryScreen} 
-          options={{ headerShown: false, animation:"fade" }} 
-        />
-  
-        <Stack.Screen 
-          name="Login" 
-          component={LoginScreen} 
-          options={{ headerShown: false, animation:"fade" }} 
-        />
-        <Stack.Screen 
-          name="SignUp" 
-          component={SignUpScreen} 
-          options={{ headerShown: false, animation:"fade" }} 
-        />
-        <Stack.Screen 
-          name="ForgotPassword" 
-          component={ForgotPasswordScreen} 
-          options={{ headerShown: false, animation:"fade" }} 
-        />
-        <Stack.Screen 
-          name="AboutScreen" 
-          component={AboutScreen} 
-          options={{ headerShown: false, animation:"fade" }} 
-        />
-        <Stack.Screen 
-          name="HelpSupportScreen" 
-          component={HelpSupportScreen} 
-          options={{ headerShown: false, animation:"fade" }} 
-        />
-        <Stack.Screen 
-          name="PrivacyScreen" 
-          component={PrivacyScreen} 
-          options={{ headerShown: false, animation:"fade" }} 
-        />
-    
- 
+            key={screen.name}
+            name={screen.name} 
+            component={screen.component} 
+            options={{ headerShown: false, animation: "fade" }} 
+          />
+        ))}
       </Stack.Navigator>
     </NavigationContainer>
   );

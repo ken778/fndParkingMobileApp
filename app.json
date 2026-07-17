@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "",
+    "name": "FndParking",
     "slug": "fndParking",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#DC143C"
     },
     "ios": {
       "supportsTablet": true
@@ -22,15 +22,20 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.fndParking",
-      "appName": " ",
-      "label": " ",
-      "displayName": " "
+      "appName": "",
+      "label": "",
+      "displayName": ""
     },
     "web": {
       "favicon": "./assets/logo.png"
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "927cf4b2-d47b-4bd0-9bcf-b7e015bfa41f"
+      }
+    }
   }
 }

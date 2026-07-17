@@ -53,7 +53,7 @@ const AppSplashScreen = ({ onFinish }) => {
         {/* App Logo */}
         <View style={styles.logoContainer}>
           <Image
-            source={require('../assets/splash-icon.png')} // Create this asset
+            source={require('../assets/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -95,11 +95,13 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     marginBottom: 20,
+    borderRadius: 42,
+    overflow: 'hidden',
   },
   logo: {
-    width: 120,
-    height: 120,
-    tintColor: '#fff',
+    width: 140,
+    height: 140,
+    borderRadius: 42,
   },
   appName: {
     fontSize: 32,
@@ -127,7 +129,7 @@ const styles = StyleSheet.create({
   dot: {
     width: 12,
     height: 12,
-    borderRadius: 6,
+    borderRadius: 50,
     backgroundColor: '#fff',
     marginHorizontal: 4,
   },
