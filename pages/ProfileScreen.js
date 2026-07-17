@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Alert, SafeAreaView, StatusBar, ScrollView } from 'react-native';
 import { auth, db } from '../FirebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { parkingSpotsService } from '../services/firebaseService';
 import { signOut } from 'firebase/auth';

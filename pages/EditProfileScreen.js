@@ -15,7 +15,7 @@ import {
 import { auth, db } from '../FirebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { updateProfile, updateEmail } from 'firebase/auth';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons as Icon } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { useTheme } from '../context/ThemeContext';
 
