@@ -21,10 +21,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.fndParking",
-      "appName": "",
-      "label": "",
-      "displayName": ""
+      "package": "com.anonymous.fndParking"
     },
     "web": {
       "favicon": "./assets/logo.png"
