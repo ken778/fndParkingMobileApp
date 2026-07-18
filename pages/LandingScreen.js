@@ -15,7 +15,7 @@ import { useTheme } from '../context/ThemeContext';
 // ✅ FIXED: Added 'increment' to the imports
 import { collection, addDoc, serverTimestamp, onSnapshot, query, where, doc, updateDoc, increment } from 'firebase/firestore';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyCKtNejSn8b2ZOQq6hStVM6t2lXtj1j7mY'; 
+const GOOGLE_MAPS_API_KEY = 'AIzaSyAUuAsTT8azFgM0F7c0RPtx83CtKnhJxp4'; 
 
 const LandingScreen = ({ navigation }) => {
   // ✅ FIXED: Safe fallback for colors in case ThemeContext is still loading

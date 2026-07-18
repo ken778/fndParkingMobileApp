@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#DC143C"
+      "backgroundColor": "#FFFFFF"
     },
     "ios": {
       "supportsTablet": true
@@ -24,7 +24,7 @@
       "package": "com.anonymous.fndParking",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyCKtNejSn8b2ZOQq6hStVM6t2lXtj1j7mY"
+          "apiKey": "AIzaSyAUuAsTT8azFgM0F7c0RPtx83CtKnhJxp4"
         }
       }
     },

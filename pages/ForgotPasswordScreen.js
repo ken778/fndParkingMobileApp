@@ -104,7 +104,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
         style={[styles.innerContainer, { opacity: fadeAnim, transform: [{ translateY: slideUpAnim }] }]}
       >
         <Animated.Image
-          source={{ uri: 'https://cdn-icons-png.flaticon.com/512/6195/6195699.png' }}
+          source={require('../assets/logo.png')}
           style={[styles.logo, { transform: [{ scale: logoScale }] }]}
           resizeMode="contain"
         />
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#fff',
     fontWeight: '600',
-    textDecorationLine: 'underline',
+    textDecorationLine: 'none',
   },
 });
 
