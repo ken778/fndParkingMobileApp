@@ -21,7 +21,12 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.fndParking"
+      "package": "com.anonymous.fndParking",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCKtNejSn8b2ZOQq6hStVM6t2lXtj1j7mY"
+        }
+      }
     },
     "web": {
       "favicon": "./assets/logo.png"
